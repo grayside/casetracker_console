@@ -1,0 +1,15 @@
+div.view-casetracker-console td.title,
+div.view-casetracker-console th.title {
+  border-right: 2px solid lightgrey;
+}
+
+div.view-casetracker-console td.count,
+div.view-casetracker-console th.count { 
+  border-left: 1px solid lightgrey;
+  text-align: center;
+}
+
+div.view-casetracker-console td.count:last-child,
+div.view-casetracker-console th.count:last-child { 
+  border-left: 4px solid lightgrey;
+}

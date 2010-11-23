@@ -1,0 +1,107 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ *  Casetracker Console module provides overview of Case Tracker Projects.
+ */
+
+include_once('casetracker_console.features.inc');
+
+/**
+ * Preprocessor for theme('views_view_table').
+ */
+function casetracker_console_preprocess_views_view_table(&$vars) {
+  $view = $vars['view'];
+  if ($view->name != 'casetracker_console') {
+    return;
+  }
+  drupal_add_css(drupal_get_path('module', 'casetracker_console') . '/casetracker_console.css');
+  foreach ($vars['rows'] as $key => $row) {
+    foreach ($row as $field => $value) {
+      if ($field != 'title') {
+        $vars['rows'][$key][$field] = _casetracker_console_listing_link($field, $value,  $view->result[$key]->nid, $view);
+      }
+    }
+  }
+}
+
+/**
+ * Helper function to convert pure counts into a link to the main case listing.
+ *
+ * If I could find a way to approach this without a hard-coded dependency on
+ * how the casetracker_cases view has configured it's path and exposed filters,
+ * this would make a cool Views handler, or extension to the casetracker_count
+ * handler in CT core.
+ *
+ * @param $field
+ *  The Views key for the field/column.
+ * @param $value
+ *  The value of the field.
+ * @param $pid
+ *  The project node id.
+ * @param $view
+ *  The views object.
+ *
+ * @return
+ *  Converting the value into a link to the casetracker case.
+ */
+function _casetracker_console_listing_link($field, $value, $pid, $view) {
+  static $inactive_states;
+
+  $status = $view->display['default']->display_options['fields'][$field]['type'];
+  $status = substr($status, -1);
+
+  $query = array('pid' => $pid);
+  if ($field != 'case_count_5') {
+    $query['case_status_id'] = $status;
+  }
+  if (module_exists('atrium_casetracker')) {
+    if (empty($inactive_states)) {
+      $inactive_states = atrium_casetracker_get_inactive_states();
+    }
+    if (in_array($status, $inactive_states)) {
+      $query['case_status_closed'] = 1;
+    }
+  }
+  return l($value, 'casetracker/filter', array(
+    'query' => $query,
+    'html' => TRUE,
+  ));
+}
+
+/**
+ * Implementation of hook_context_default_contexts_alter().
+ */
+function casetracker_console_context_default_contexts_alter(&$contexts) {
+  if (module_exists('atrium_casetracker')) {
+    $contexts['casetracker_listing']->conditions['views']['values'][] = 'casetracker_console';
+  }
+}
+
+/**
+ * Implementation of hook_views_default_views_alter().
+ */
+function casetracker_console_views_default_views_alter(&$views) {
+  if (module_exists('atrium_casetracker')) {
+    $views['casetracker_console']->display['default']->display_options['filters']['current'] = array(
+      'operator' => 'all',
+      'value' => '',
+      'group' => '0',
+      'exposed' => FALSE,
+      'expose' => array(
+        'operator' => FALSE,
+        'label' => '',
+      ),
+      'id' => 'current',
+      'table' => 'spaces',
+      'field' => 'current',
+      'relationship' => 'none',
+    );
+    $views['casetracker_console']->display['default']->display_options['access'] = array(
+      'type' => 'atrium_feature',
+      'spaces_feature' => 'atrium_casetracker',
+      'perm' => 'access content',
+    );
+  }
+}

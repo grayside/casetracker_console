@@ -1,0 +1,9 @@
+name = "Case Tracker Console"
+description = "Provide a per-project status overview of casetracker cases."
+core = "6.x"
+dependencies[] = "casetracker"
+dependencies[] = "views"
+
+; Special Settings
+features[views][] = "casetracker_console"
+features[views_api][] = "api:2"
