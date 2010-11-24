@@ -88,7 +88,6 @@ function casetracker_console_views_default_views_alter(&$views) {
     _casetracker_console_spaces_access($views['casetracker_console']);
   }
   $total = array_pop($views['casetracker_console']->display['default']->display_options['fields']);
-  
   $statuses = casetracker_realm_load('status');
   $increment = 0;
   foreach ($statuses as $status => $label) {
@@ -99,6 +98,12 @@ function casetracker_console_views_default_views_alter(&$views) {
   $views['casetracker_console']->display['default']->display_options['fields'][$total_id] = $total;
 }
 
+/**
+ * Integrate a View with 'Spaces: Content in current space' filter.
+ *
+ * @param
+ *  View object.
+ */
 function _casetracker_console_spaces_filter($view) {
   $view->display['default']->display_options['filters']['current'] = array(
     'operator' => 'all',
@@ -116,6 +121,12 @@ function _casetracker_console_spaces_filter($view) {
   );
 }
 
+/**
+ * Integrate a View with the Spaces feature access handler.
+ *
+ * @param $view
+ *  View object.
+ */
 function _casetracker_console_spaces_access($view) {
   $view->display['default']->display_options['access'] = array(
     'type' => 'spaces_feature',
@@ -124,6 +135,18 @@ function _casetracker_console_spaces_access($view) {
   );
 }
 
+/**
+ * Insert a case status column into the View.
+ *
+ * @param $state
+ *  Case Tracker State ID.
+ * @param $label
+ *  Human-readable label/name of the CT State.
+ * @param $increment
+ *  The column counter, used to mark field indeces.
+ * @param $view
+ *  The View object.
+ */
 function _casetracker_console_add_column($state, $label, $increment, $view) { 
   $id = 'case_count_' . $increment;
   $view->display['default']->display_options['fields'][$id] = array(
