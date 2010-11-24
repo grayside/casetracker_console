@@ -84,24 +84,76 @@ function casetracker_console_context_default_contexts_alter(&$contexts) {
  */
 function casetracker_console_views_default_views_alter(&$views) {
   if (module_exists('atrium_casetracker')) {
-    $views['casetracker_console']->display['default']->display_options['filters']['current'] = array(
-      'operator' => 'all',
-      'value' => '',
-      'group' => '0',
-      'exposed' => FALSE,
-      'expose' => array(
-        'operator' => FALSE,
-        'label' => '',
-      ),
-      'id' => 'current',
-      'table' => 'spaces',
-      'field' => 'current',
-      'relationship' => 'none',
-    );
-    $views['casetracker_console']->display['default']->display_options['access'] = array(
-      'type' => 'atrium_feature',
-      'spaces_feature' => 'atrium_casetracker',
-      'perm' => 'access content',
-    );
+    _casetracker_console_spaces_filter($views['casetracker_console']);
+    _casetracker_console_spaces_access($views['casetracker_console']);
   }
+  $total = array_pop($views['casetracker_console']->display['default']->display_options['fields']);
+  
+  $statuses = casetracker_realm_load('status');
+  $increment = 0;
+  foreach ($statuses as $status => $label) {
+    _casetracker_console_add_column($status, $label, ++$increment, $views['casetracker_console']);
+  }
+  $total_id = 'case_count_' . ++$increment;
+  $total['id'] = $total_id;
+  $views['casetracker_console']->display['default']->display_options['fields'][$total_id] = $total;
+}
+
+function _casetracker_console_spaces_filter($view) {
+  $view->display['default']->display_options['filters']['current'] = array(
+    'operator' => 'all',
+    'value' => '',
+    'group' => '0',
+    'exposed' => FALSE,
+    'expose' => array(
+      'operator' => FALSE,
+      'label' => '',
+    ),
+    'id' => 'current',
+    'table' => 'spaces',
+    'field' => 'current',
+    'relationship' => 'none',
+  );
+}
+
+function _casetracker_console_spaces_access($view) {
+  $view->display['default']->display_options['access'] = array(
+    'type' => 'spaces_feature',
+    'spaces_feature' => 'atrium_casetracker',
+    'perm' => 'access content',
+  );
+}
+
+function _casetracker_console_add_column($state, $label, $increment, $view) { 
+  $id = 'case_count_' . $increment;
+  $view->display['default']->display_options['fields'][$id] = array(
+    'label' => $label,
+    'alter' => array(
+      'alter_text' => 0,
+      'text' => '',
+      'make_link' => 0,
+      'path' => '',
+      'link_class' => '',
+      'alt' => '',
+      'prefix' => '',
+      'suffix' => '',
+      'target' => '',
+      'help' => '',
+      'trim' => 0,
+      'max_length' => '',
+      'word_boundary' => 1,
+      'ellipsis' => 1,
+      'html' => 0,
+      'strip_tags' => 0,
+    ),
+    'empty' => '',
+    'hide_empty' => 0,
+    'empty_zero' => 0,
+    'type' => 'status-' . $state,
+    'exclude' => 0,
+    'id' => $id,
+    'table' => 'casetracker_case',
+    'field' => 'case_count',
+    'relationship' => 'none',
+  );
 }

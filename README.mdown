@@ -1,0 +1,6 @@
+## Case Tracker Console
+Case Tracker Console creates a summary listing the count of all cases by case status per project.
+
+Be cautious trying to override/update the View, as the View dynamically builds out columns for each casetracker status in your local installation.
+
+This feature has non-dependent integration with Open Atrium.
